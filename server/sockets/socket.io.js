@@ -1,23 +1,46 @@
 const {io} = require('../../server/app');
+const {TicketControl} = require('../classes/ticket-control');
 
-// conexion desde el fronted y detectar cuando un usuario desde el frontend se conecta y se desconecta
+const ticket = new TicketControl();
+
+// conexion desde el fronted
 io.on('connection', (client) => {
-    console.log('Usuario conectado');
+console.log('Usuario conectado');    
 
-    client.on('disconnect', () => {
-        console.log('Usuario desconectado');
-    });
+client.on('disconnect', () => {
+console.log('usuario desconectado');
+});
 
-    // escuchar cliente 
-    client.on('enviarMensaje', (data, callback) => {
-      console.log(data);
-      client.broadcast.emit('enviarMensaje', data);
-    });
+client.on('siguienteTicket', (data, callback) =>{
+let nuevoticket = ticket.siguienteTicket();
+callback(nuevoticket);
+});
 
 
-    // enviar mensaje al cliente
-    client.emit('enviarMensaje', {
-        usuario: 'Administrador',
-        mensaje: 'Bienvenido Administrador'
-    });
-}); 
+// emitir el evento ultimo ticket
+client.emit('ultimoTicket', {
+ultimo:  ticket.ultimoTicket(),
+ultimos4: ticket.Ultimos4()
+});
+
+
+// atender ticket
+client.on('atenderTicket', (data, callback) => {
+if(!data.escritorio){
+return callback ({
+error: true,
+mensaje: 'Error falta el escritorio'    
+});    
+}
+
+let atenderTicket = ticket.AtenderTicket(data.escritorio);
+callback(atenderTicket);
+
+// para que todos los usuarios vean la informacion
+client.broadcast.emit('ultimos4', {
+ultimos4: ticket.Ultimos4()
+});
+
+});
+});
+

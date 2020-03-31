@@ -1,27 +1,21 @@
 var socket = io();
-var data = document.getElementById('palabra');
+var label = $("#lblNuevoTicket");
 
-// conectar al servidor del backend y escuchar lo que nos emite el servidor
-socket.on('connect', function () {
-    data.innerHTML = 'conectado al servidor';
-    console.log('conectado al servidor');
+socket.on('connect', function(client){
+console.log('conectado al servidor');
 });
 
-socket.on('disconnect', function () {
-    data.innerHTML = 'Desconexion al servidor';
-    console.log('Desconexion con el servidor');
+socket.on('disconnect', function(){
+console.log('desconectado del servidor');
 });
 
-// Emit enviar informacion al servidor
-socket.emit('enviarMensaje', {
-    usuario: 'Joel Toribio',
-    mensaje: 'Hola Mundo'
-}, function (resp) {
-    console.log('respuesta: ', resp);
+// recibir ultimo ticket
+socket.on('ultimoTicket', function(data) {
+$(label).text(data.ultimo); 
 });
 
-
-// escuchar informacion
-socket.on('enviarMensaje', function (data) {
-    console.log(data);
+$("button").on('click', function () {
+    socket.emit('siguienteTicket', null, function(siguienteTicket){
+       $(label).text(siguienteTicket); 
+    });
 });
